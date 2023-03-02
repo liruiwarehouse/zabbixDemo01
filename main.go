@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/xuri/excelize/v2"
 	"time"
-	"zabbixDemo01/excel"
 	"zabbixDemo01/zabbix"
 )
 
@@ -22,31 +20,32 @@ func main() {
 		{"CDtoBJ", 43986, 43983},
 	}
 
-	data := zabbix.InitDayData(&a, count)
+	data := zabbix.InitDayData(a, count)
+	fmt.Println(data)
 	//monthavedata := zabbix.MonthTrafficHandle(data)
 	// 生成xlsx文件
-	excel.CreateXlsx(data)
-
-	// 打开一个文件
-	f, err := excelize.OpenFile("./files/book1.xlsx")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer func() {
-		if err := f.Close(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
-	// 写入数据
-	for i := 0; i < len(*data); i++ {
-		excel.WriteExcel((*data)[i].Isp, (*data)[i].AveResult, f)
-	}
-
-	// 生成线路月流量平均值表格
-
-	if err := f.SaveAs("./files/book1.xlsx"); err != nil {
-		fmt.Println(err)
-	}
+	//excel.CreateXlsx(data)
+	//
+	//// 打开一个文件
+	//f, err := excelize.OpenFile("./files/book1.xlsx")
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
+	//defer func() {
+	//	if err := f.Close(); err != nil {
+	//		fmt.Println(err)
+	//	}
+	//}()
+	//
+	//// 写入数据
+	//for i := 0; i < len(*data); i++ {
+	//	excel.WriteExcel((*data)[i].Isp, (*data)[i].AveResult, f)
+	//}
+	//
+	//// 生成线路月流量平均值表格
+	//
+	//if err := f.SaveAs("./files/book1.xlsx"); err != nil {
+	//	fmt.Println(err)
+	//}
 }

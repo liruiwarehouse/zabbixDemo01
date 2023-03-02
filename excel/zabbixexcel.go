@@ -9,20 +9,7 @@ import (
 
 // WriteExcel 将数据写入Excel
 func WriteExcel(sheet string, das *[]zabbix.DayAveSlice, f *excelize.File) {
-	// 打开一个文件
-	//f, err := excelize.OpenFile("./files/book1.xlsx")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//defer func() {
-	//	if err := f.Close(); err != nil {
-	//		fmt.Println(err)
-	//	}
-	//}()
-	//fmt.Printf("线路: %s\n值: %v\n", sheet, das)
 
-	//fmt.Println(*das)
 	for i := 0; i < len(*das); i++ {
 
 		f.SetCellValue(sheet, fmt.Sprintf("%s%d", "A", i+3), (*das)[i].Clock)
@@ -36,10 +23,6 @@ func WriteExcel(sheet string, das *[]zabbix.DayAveSlice, f *excelize.File) {
 		f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "B", i+3), (*das)[i].UpAve, 3, 64)
 		f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "C", i+3), (*das)[i].DownAve, 3, 64)
 	}
-
-	//if err := f.SaveAs("./files/book1.xlsx"); err != nil {
-	//	fmt.Println(err)
-	//}
 }
 
 // AveTable 制作月平均值表格
@@ -276,7 +259,7 @@ func AveChart(f *excelize.File) {
 }
 
 // CreateXlsx 创建xlsx文件
-func CreateXlsx(d *[]zabbix.DayData) {
+func CreateXlsx(d []zabbix.DayData) {
 	// 删除同名的xlsx文件
 	err := os.Remove("./files/book1.xlsx")
 	if err != nil {
@@ -293,14 +276,14 @@ func CreateXlsx(d *[]zabbix.DayData) {
 	}()
 
 	// 新建多张表
-	for i := 0; i < len(*d); i++ {
-		f.NewSheet((*d)[i].Isp)
-		f.SetCellValue((*d)[i].Isp, "A1", (*d)[i].Isp)
-		f.MergeCell((*d)[i].Isp, "A1", "C1")
-		f.SetColWidth((*d)[i].Isp, fmt.Sprintf("%s", "A"), fmt.Sprintf("%s", "A"), 15)
-		f.SetCellValue((*d)[i].Isp, "A2", "日期")
-		f.SetCellValue((*d)[i].Isp, "B2", "上传")
-		f.SetCellValue((*d)[i].Isp, "C2", "下载")
+	for i := 0; i < len(d); i++ {
+		f.NewSheet((d)[i].Isp)
+		f.SetCellValue((d)[i].Isp, "A1", (d)[i].Isp)
+		f.MergeCell((d)[i].Isp, "A1", "C1")
+		f.SetColWidth((d)[i].Isp, fmt.Sprintf("%s", "A"), fmt.Sprintf("%s", "A"), 15)
+		f.SetCellValue((d)[i].Isp, "A2", "日期")
+		f.SetCellValue((d)[i].Isp, "B2", "上传")
+		f.SetCellValue((d)[i].Isp, "C2", "下载")
 	}
 
 	// 根据指定路径保存文件

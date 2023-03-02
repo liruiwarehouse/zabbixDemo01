@@ -69,8 +69,8 @@ type MonthAveSlice struct {
 
 // TrafficInterface 接口
 type TrafficInterface interface {
-	TrafficUpload(am, pm int64) *ZabbixData
-	TrafficDownload(am, pm int64) *ZabbixData
+	TrafficUpload(am, pm int64) ZabbixData
+	TrafficDownload(am, pm int64) ZabbixData
 }
 
 // NewIspItem 构造函数
@@ -83,17 +83,17 @@ func NewIspItem(isp string, up, down int) *IspItem {
 }
 
 // TrafficUpload 是 IspItem 结构体的方法
-func (i *IspItem) TrafficUpload(am, pm int64) *ZabbixData {
+func (i *IspItem) TrafficUpload(am, pm int64) ZabbixData {
 	return ZabbixGet(i.UpItem, am, pm)
 }
 
 // TrafficDownload 是 IspItem 结构体的方法
-func (i *IspItem) TrafficDownload(am, pm int64) *ZabbixData {
+func (i *IspItem) TrafficDownload(am, pm int64) ZabbixData {
 	return ZabbixGet(i.DownItem, am, pm)
 }
 
 // TimeCount 计算时间
-func TimeCount(timeStart, timeEnd time.Time) *[]TimeSlice {
+func TimeCount(timeStart, timeEnd time.Time) []TimeSlice {
 	var timeslice []TimeSlice
 	for i := 0; i < timeEnd.Day(); i++ {
 		if timeStart.AddDate(0, 0, i).Weekday() != time.Sunday && timeStart.AddDate(0, 0, i).Weekday() != time.Saturday {
@@ -103,11 +103,11 @@ func TimeCount(timeStart, timeEnd time.Time) *[]TimeSlice {
 			timeslice = append(timeslice, m)
 		}
 	}
-	return &timeslice
+	return timeslice
 }
 
 // ZabbixGet 通过history.get查询历史流量
-func ZabbixGet(item int, am, pm int64) *ZabbixData {
+func ZabbixGet(item int, am, pm int64) ZabbixData {
 	// Body Raw Json 结构体实例化
 	var brj = &BodyRaw{
 		Jsonrpc: "2.0",
@@ -152,31 +152,31 @@ func ZabbixGet(item int, am, pm int64) *ZabbixData {
 	var info ZabbixData
 	json.NewDecoder(resp.Body).Decode(&info)
 
-	return &info
+	return info
 }
 
 // MonthQuery 根据传入的时间切片生成天流量平均值并保存至DayAveSlice类型切片中并返回
-func MonthQuery(t TrafficInterface, timeslice *[]TimeSlice) *[]DayAveSlice {
+func MonthQuery(t TrafficInterface, timeslice []TimeSlice) []DayAveSlice {
 	// 初始化一个DayAveSlice类型切片
 	var dayaveslice []DayAveSlice
 
-	for i := 0; i < len(*timeslice); i++ {
+	for i := 0; i < len(timeslice); i++ {
 		// 这里(*timeslice)[i].Am如果写成*timeslice[i].Am会报错"Invalid operation: 'timeslice[i]' (type '*[]TimeSlice' does not support indexing)"
 		// 因为Go会把*timeslice[i].Am当作(*timeslice[i].Am)
-		upload := t.TrafficUpload((*timeslice)[i].Am.Unix(), (*timeslice)[i].Pm.Unix())
-		download := t.TrafficDownload((*timeslice)[i].Am.Unix(), (*timeslice)[i].Pm.Unix())
+		upload := t.TrafficUpload((timeslice)[i].Am.Unix(), (timeslice)[i].Pm.Unix())
+		download := t.TrafficDownload((timeslice)[i].Am.Unix(), (timeslice)[i].Pm.Unix())
 
 		u := DayTrafficHandle(upload)
 		d := DayTrafficHandle(download)
 
-		c := DayAveSlice{Clock: (*timeslice)[i].Am, UpAve: u, DownAve: d}
+		c := DayAveSlice{Clock: (timeslice)[i].Am, UpAve: u, DownAve: d}
 		dayaveslice = append(dayaveslice, c)
 	}
-	return &dayaveslice
+	return dayaveslice
 }
 
 // DayTrafficHandle 天流量平均值数据处理
-func DayTrafficHandle(z *ZabbixData) float64 {
+func DayTrafficHandle(z ZabbixData) float64 {
 	var num float64 = 0
 	// 判断查询结果中result选项如果没有值，则ZabbixData结构体中的[]Result结构体切片的长度为0，
 	// 返回这个0值，不然会显示为"NaN"，影响后面的计算
@@ -215,16 +215,16 @@ func DayTrafficHandle(z *ZabbixData) float64 {
 
 type DayData struct {
 	Isp       string
-	AveResult *[]DayAveSlice
+	AveResult []DayAveSlice
 }
 
-func InitDayData(item *[]IspItem, ts *[]TimeSlice) *[]DayData {
+func InitDayData(item []IspItem, ts []TimeSlice) []DayData {
 	var b []DayData
-	for i := 0; i < len(*item); i++ {
-		it := NewIspItem((*item)[i].Isp, (*item)[i].UpItem, (*item)[i].DownItem)
+	for i := 0; i < len(item); i++ {
+		it := NewIspItem((item)[i].Isp, (item)[i].UpItem, (item)[i].DownItem)
 		res := MonthQuery(it, ts)
-		bb := DayData{Isp: (*item)[i].Isp, AveResult: res}
+		bb := DayData{Isp: (item)[i].Isp, AveResult: res}
 		b = append(b, bb)
 	}
-	return &b
+	return b
 }
