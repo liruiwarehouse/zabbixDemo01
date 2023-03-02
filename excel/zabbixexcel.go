@@ -8,11 +8,11 @@ import (
 )
 
 // WriteExcel 将数据写入Excel
-func WriteExcel(sheet string, das *[]zabbix.DayAveSlice, f *excelize.File) {
+func WriteExcel(sheet string, das []zabbix.DayAveSlice, f *excelize.File) {
 
-	for i := 0; i < len(*das); i++ {
+	for i := 0; i < len(das); i++ {
 
-		f.SetCellValue(sheet, fmt.Sprintf("%s%d", "A", i+3), (*das)[i].Clock)
+		f.SetCellValue(sheet, fmt.Sprintf("%s%d", "A", i+3), (das)[i].Clock)
 		exp := "[$-380A]yyyy\"年\"m\"月\"d\"日\";@"
 		style, err := f.NewStyle(&excelize.Style{CustomNumFmt: &exp})
 		if err != nil {
@@ -20,8 +20,8 @@ func WriteExcel(sheet string, das *[]zabbix.DayAveSlice, f *excelize.File) {
 		}
 		f.SetCellStyle(sheet, fmt.Sprintf("%s%d", "A", i+3), fmt.Sprintf("%s%d", "A", i+3), style)
 
-		f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "B", i+3), (*das)[i].UpAve, 3, 64)
-		f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "C", i+3), (*das)[i].DownAve, 3, 64)
+		f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "B", i+3), (das)[i].UpAve, 3, 64)
+		f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "C", i+3), (das)[i].DownAve, 3, 64)
 	}
 }
 
@@ -261,7 +261,7 @@ func AveChart(f *excelize.File) {
 // CreateXlsx 创建xlsx文件
 func CreateXlsx(d []zabbix.DayData) {
 	// 删除同名的xlsx文件
-	err := os.Remove("./files/book1.xlsx")
+	err := os.Remove("../zabbixDemo01Files/book1.xlsx")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -287,7 +287,7 @@ func CreateXlsx(d []zabbix.DayData) {
 	}
 
 	// 根据指定路径保存文件
-	if err := f.SaveAs("./files/book1.xlsx"); err != nil {
+	if err := f.SaveAs("../zabbixDemo01Files/book1.xlsx"); err != nil {
 		fmt.Println(err)
 	}
 }
