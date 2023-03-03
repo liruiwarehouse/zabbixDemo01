@@ -11,7 +11,7 @@ import (
 func main() {
 
 	timeStart := time.Date(2023, 2, 1, 0, 0, 0, 0, time.UTC)
-	timeEnd := time.Date(2023, 2, 23, 0, 0, 0, 0, time.UTC)
+	timeEnd := time.Date(2023, 2, 28, 0, 0, 0, 0, time.UTC)
 	count := zabbix.TimeCount(timeStart, timeEnd)
 
 	a := []zabbix.IspItem{
@@ -23,8 +23,8 @@ func main() {
 	}
 
 	data := zabbix.InitDayData(a, count)
-	fmt.Println(data)
-	// 生成xlsx文件
+	//fmt.Println(data)
+	//// 生成xlsx文件
 	excel.CreateXlsx(data)
 
 	// 打开一个文件
@@ -43,8 +43,6 @@ func main() {
 	for i := 0; i < len(data); i++ {
 		excel.WriteExcel((data)[i].Isp, (data)[i].AveResult, f)
 	}
-
-	// 生成线路月流量平均值表格
 
 	if err := f.SaveAs("../zabbixDemo01Files/book1.xlsx"); err != nil {
 		fmt.Println(err)

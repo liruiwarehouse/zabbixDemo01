@@ -10,18 +10,29 @@ import (
 // WriteExcel 将数据写入Excel
 func WriteExcel(sheet string, das []zabbix.DayAveSlice, f *excelize.File) {
 
+	_ = f.SetCellValue(sheet, "A1", "日期")
+	_ = f.SetCellValue(sheet, "B1", "上传")
+	_ = f.SetCellValue(sheet, "C1", "下载")
 	for i := 0; i < len(das); i++ {
-
-		f.SetCellValue(sheet, fmt.Sprintf("%s%d", "A", i+3), (das)[i].Clock)
-		exp := "[$-380A]yyyy\"年\"m\"月\"d\"日\";@"
+		n := i + 2
+		err := f.SetCellValue(sheet, fmt.Sprintf("%s%d", "A", n), (das)[i].Clock)
+		if err != nil {
+			fmt.Println(err)
+		}
+		exp := "[$-380A]yyyy\"-\"m\"-\"d\"\";@"
 		style, err := f.NewStyle(&excelize.Style{CustomNumFmt: &exp})
 		if err != nil {
 			panic(err)
 		}
-		f.SetCellStyle(sheet, fmt.Sprintf("%s%d", "A", i+3), fmt.Sprintf("%s%d", "A", i+3), style)
+		_ = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", "A", n), fmt.Sprintf("%s%d", "A", n), style)
+		_ = f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "B", n), (das)[i].UpAve, 3, 64)
+		_ = f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "C", n), (das)[i].DownAve, 3, 64)
 
-		f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "B", i+3), (das)[i].UpAve, 3, 64)
-		f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "C", i+3), (das)[i].DownAve, 3, 64)
+		if i == len(das)-1 {
+			_ = f.SetCellValue(sheet, fmt.Sprintf("%s%d", "A", n+1), "平均值")
+			_ = f.SetCellFormula(sheet, fmt.Sprintf("%s%d", "B", n+1), fmt.Sprintf("=AVERAGE(B1,B%d)", n))
+			_ = f.SetCellFormula(sheet, fmt.Sprintf("%s%d", "C", n+1), fmt.Sprintf("=AVERAGE(C1,C%d)", n))
+		}
 	}
 }
 
@@ -269,6 +280,8 @@ func CreateXlsx(d []zabbix.DayData) {
 
 	// 创建一个xlsx文件
 	f := excelize.NewFile()
+	sheetName := "月报"
+	_ = f.SetSheetName("Sheet1", sheetName)
 	defer func() {
 		if err := f.Close(); err != nil {
 			fmt.Println(err)
@@ -277,13 +290,10 @@ func CreateXlsx(d []zabbix.DayData) {
 
 	// 新建多张表
 	for i := 0; i < len(d); i++ {
-		f.NewSheet((d)[i].Isp)
-		f.SetCellValue((d)[i].Isp, "A1", (d)[i].Isp)
-		f.MergeCell((d)[i].Isp, "A1", "C1")
-		f.SetColWidth((d)[i].Isp, fmt.Sprintf("%s", "A"), fmt.Sprintf("%s", "A"), 15)
-		f.SetCellValue((d)[i].Isp, "A2", "日期")
-		f.SetCellValue((d)[i].Isp, "B2", "上传")
-		f.SetCellValue((d)[i].Isp, "C2", "下载")
+		_, err := f.NewSheet((d)[i].Isp)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	// 根据指定路径保存文件
