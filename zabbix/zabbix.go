@@ -57,7 +57,7 @@ type TimeSlice struct {
 
 // DayAveSlice 保存当月上班时间以及当天流量平均值
 type DayAveSlice struct {
-	Clock          time.Time
+	Clock          string
 	UpAve, DownAve float64
 }
 
@@ -169,7 +169,8 @@ func MonthQuery(t TrafficInterface, timeslice []TimeSlice) []DayAveSlice {
 		u := DayTrafficHandle(upload)
 		d := DayTrafficHandle(download)
 
-		c := DayAveSlice{Clock: (timeslice)[i].Am, UpAve: u, DownAve: d}
+		ck := timeslice[i].Am.Format("02")
+		c := DayAveSlice{Clock: ck, UpAve: u, DownAve: d}
 		dayaveslice = append(dayaveslice, c)
 	}
 	return dayaveslice
@@ -221,9 +222,9 @@ type DayData struct {
 func InitDayData(item []IspItem, ts []TimeSlice) []DayData {
 	var b []DayData
 	for i := 0; i < len(item); i++ {
-		it := NewIspItem((item)[i].Isp, (item)[i].UpItem, (item)[i].DownItem)
+		it := NewIspItem(item[i].Isp, item[i].UpItem, item[i].DownItem)
 		res := MonthQuery(it, ts)
-		bb := DayData{Isp: (item)[i].Isp, AveResult: res}
+		bb := DayData{Isp: item[i].Isp, AveResult: res}
 		b = append(b, bb)
 	}
 	return b

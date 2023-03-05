@@ -8,32 +8,44 @@ import (
 )
 
 // WriteExcel 将数据写入Excel
-func WriteExcel(sheet string, das []zabbix.DayAveSlice, f *excelize.File) {
+func WriteExcel(sheet string, das []zabbix.DayAveSlice, f *excelize.File) int {
 
 	_ = f.SetCellValue(sheet, "A1", "日期")
 	_ = f.SetCellValue(sheet, "B1", "上传")
 	_ = f.SetCellValue(sheet, "C1", "下载")
+	var n int
 	for i := 0; i < len(das); i++ {
-		n := i + 2
-		err := f.SetCellValue(sheet, fmt.Sprintf("%s%d", "A", n), (das)[i].Clock)
-		if err != nil {
-			fmt.Println(err)
-		}
-		exp := "[$-380A]yyyy\"-\"m\"-\"d\"\";@"
-		style, err := f.NewStyle(&excelize.Style{CustomNumFmt: &exp})
-		if err != nil {
-			panic(err)
-		}
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", "A", n), fmt.Sprintf("%s%d", "A", n), style)
+		n = i + 2
+		_ = f.SetCellValue(sheet, fmt.Sprintf("%s%d", "A", n), das[i].Clock)
+		//if err != nil {
+		//	fmt.Println(err)
+		//}
+		//exp := "[$-380A]yyyy\"-\"m\"-\"d\"\";@"
+		//style, err := f.NewStyle(&excelize.Style{CustomNumFmt: &exp})
+		//if err != nil {
+		//	panic(err)
+		//}
+		//_ = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", "A", n), fmt.Sprintf("%s%d", "A", n), style)
 		_ = f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "B", n), (das)[i].UpAve, 3, 64)
 		_ = f.SetCellFloat(sheet, fmt.Sprintf("%s%d", "C", n), (das)[i].DownAve, 3, 64)
 
 		if i == len(das)-1 {
 			_ = f.SetCellValue(sheet, fmt.Sprintf("%s%d", "A", n+1), "平均值")
-			_ = f.SetCellFormula(sheet, fmt.Sprintf("%s%d", "B", n+1), fmt.Sprintf("=AVERAGE(B1,B%d)", n))
-			_ = f.SetCellFormula(sheet, fmt.Sprintf("%s%d", "C", n+1), fmt.Sprintf("=AVERAGE(C1,C%d)", n))
+
+			style, err := f.NewStyle(&excelize.Style{DecimalPlaces: 2})
+			if err != nil {
+				panic(err)
+			}
+
+			_ = f.SetCellFormula(sheet, fmt.Sprintf("%s%d", "B", n+1), fmt.Sprintf("=AVERAGE(B2:B%d)", n))
+			//_ = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", "C", n+1), fmt.Sprintf("%s%d", "C", n+1), style)
+			_ = f.SetCellFormula(sheet, fmt.Sprintf("%s%d", "C", n+1), fmt.Sprintf("=AVERAGE(C2:C%d)", n))
+			_ = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", "B", n+1), fmt.Sprintf("%s%d", "C", n+1), style)
+
 		}
+
 	}
+	return n
 }
 
 // AveTable 制作月平均值表格
@@ -64,17 +76,17 @@ func AveTable(f *excelize.File) {
 	f.SetCellFormula("sheet1", "C29", "=AVERAGE(专线!C3:C19)")
 }
 
-// AveChart 制作折线图
-func AveChart(f *excelize.File) {
+// LineChart 制作折线图
+func LineChart(f *excelize.File, n int) {
 	// 上传
-	if err := f.AddChart("sheet1", "A1", &excelize.Chart{
+	if err := f.AddChart("月报", "A1", &excelize.Chart{
 		Type: "line",
 		Series: []excelize.ChartSeries{
 			// 移动
 			{
-				Name:       "移动!$A$1",
-				Categories: "移动!$A$3:$A$19",
-				Values:     "移动!$B$3:$B$19",
+				Name:       "Mobile",
+				Categories: fmt.Sprintf("%s!$A$2:$A$%d", "Mobile", n),
+				Values:     fmt.Sprintf("%s!$B$2:$B$%d", "Mobile", n),
 				Line: excelize.ChartLine{
 					Smooth: true,
 					Width:  2,
@@ -85,9 +97,9 @@ func AveChart(f *excelize.File) {
 			},
 			// 联通
 			{
-				Name:       "联通!$A$1",
-				Categories: "联通!$A$3:$A$19",
-				Values:     "联通!$B$3:$B$19",
+				Name:       "Unicom",
+				Categories: fmt.Sprintf("%s!$A$2:$A$%d", "Unicom", n),
+				Values:     fmt.Sprintf("%s!$B$2:$B$%d", "Unicom", n),
 				Line: excelize.ChartLine{
 					Smooth: true,
 					Width:  2,
@@ -98,9 +110,9 @@ func AveChart(f *excelize.File) {
 			},
 			// 电信
 			{
-				Name:       "电信!$A$1",
-				Categories: "电信!$A$3:$A$19",
-				Values:     "电信!$B$3:$B$19",
+				Name:       "Telecom",
+				Categories: fmt.Sprintf("%s!$A$2:$A$%d", "Telecom", n),
+				Values:     fmt.Sprintf("%s!$B$2:$B$%d", "Telecom", n),
 				Line: excelize.ChartLine{
 					Smooth: true,
 					Width:  2,
@@ -111,9 +123,9 @@ func AveChart(f *excelize.File) {
 			},
 			// MPLS
 			{
-				Name:       "MPLS!$A$1",
-				Categories: "MPLS!$A$3:$A$19",
-				Values:     "MPLS!$B$3:$B$19",
+				Name:       "Mpls",
+				Categories: fmt.Sprintf("%s!$A$2:$A$%d", "Mpls", n),
+				Values:     fmt.Sprintf("%s!$B$2:$B$%d", "Mpls", n),
 				Line: excelize.ChartLine{
 					Smooth: true,
 					Width:  2,
@@ -124,9 +136,9 @@ func AveChart(f *excelize.File) {
 			},
 			// 专线
 			{
-				Name:       "专线!$A$1",
-				Categories: "专线!$A$3:$A$19",
-				Values:     "专线!$B$3:$B$19",
+				Name:       "CDtoBJ",
+				Categories: fmt.Sprintf("%s!$A$2:$A$%d", "CDtoBJ", n),
+				Values:     fmt.Sprintf("%s!$B$2:$B$%d", "CDtoBJ", n),
 				Line: excelize.ChartLine{
 					Smooth: true,
 					Width:  2,
@@ -168,14 +180,14 @@ func AveChart(f *excelize.File) {
 	}
 
 	// 下载
-	if err := f.AddChart("sheet1", "M1", &excelize.Chart{
+	if err := f.AddChart("月报", "M1", &excelize.Chart{
 		Type: "line",
 		Series: []excelize.ChartSeries{
 			// 移动
 			{
-				Name:       "移动!$A$1",
-				Categories: "移动!$A$3:$A$19",
-				Values:     "移动!$C$3:$C$19",
+				Name:       "Mobile",
+				Categories: fmt.Sprintf("%s!$A$2:$A$%d", "Mobile", n),
+				Values:     fmt.Sprintf("%s!$C$2:$C$%d", "Mobile", n),
 				Line: excelize.ChartLine{
 					Smooth: true,
 					Width:  2,
@@ -186,9 +198,9 @@ func AveChart(f *excelize.File) {
 			},
 			// 联通
 			{
-				Name:       "联通!$A$1",
-				Categories: "联通!$A$3:$A$19",
-				Values:     "联通!$C$3:$C$19",
+				Name:       "Unicom",
+				Categories: fmt.Sprintf("%s!$A$2:$A$%d", "Unicom", n),
+				Values:     fmt.Sprintf("%s!$C$2:$C$%d", "Unicom", n),
 				Line: excelize.ChartLine{
 					Smooth: true,
 					Width:  2,
@@ -199,9 +211,9 @@ func AveChart(f *excelize.File) {
 			},
 			// 电信
 			{
-				Name:       "电信!$A$1",
-				Categories: "电信!$A$3:$A$19",
-				Values:     "电信!$C$3:$C$19",
+				Name:       "Telecom",
+				Categories: fmt.Sprintf("%s!$A$2:$A$%d", "Telecom", n),
+				Values:     fmt.Sprintf("%s!$C$2:$C$%d", "Telecom", n),
 				Line: excelize.ChartLine{
 					Smooth: true,
 					Width:  2,
@@ -212,9 +224,9 @@ func AveChart(f *excelize.File) {
 			},
 			// MPLS
 			{
-				Name:       "MPLS!$A$1",
-				Categories: "MPLS!$A$3:$A$19",
-				Values:     "MPLS!$C$3:$C$19",
+				Name:       "Mpls",
+				Categories: fmt.Sprintf("%s!$A$2:$A$%d", "Mpls", n),
+				Values:     fmt.Sprintf("%s!$C$2:$C$%d", "Mpls", n),
 				Line: excelize.ChartLine{
 					Smooth: true,
 					Width:  2,
@@ -225,9 +237,9 @@ func AveChart(f *excelize.File) {
 			},
 			// 专线
 			{
-				Name:       "专线!$A$1",
-				Categories: "专线!$A$3:$A$19",
-				Values:     "专线!$C$3:$C$19",
+				Name:       "CDtoBJ",
+				Categories: fmt.Sprintf("%s!$A$2:$A$%d", "CDtoBJ", n),
+				Values:     fmt.Sprintf("%s!$C$2:$C$%d", "CDtoBJ", n),
 				Line: excelize.ChartLine{
 					Smooth: true,
 					Width:  2,
@@ -263,6 +275,35 @@ func AveChart(f *excelize.File) {
 			Width:  700,
 		},
 		ShowBlanksAs: "zero",
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+// PieChart 饼图
+func PieChart(f *excelize.File, n int) {
+	if err := f.AddChart("月报", "A23", &excelize.Chart{
+		Type: "pie",
+		Series: []excelize.ChartSeries{
+			{
+				Name: "数量",
+				//Categories: "Sheet1!$A$1:$C$1",
+				Values: fmt.Sprintf("%s!$B$%d", "Mobile", n+1),
+			},
+		},
+		Format: excelize.GraphicOptions{
+			OffsetX: 15,
+			OffsetY: 10,
+		},
+		Title: excelize.ChartTitle{
+			Name: "三维饼图",
+		},
+		PlotArea: excelize.ChartPlotArea{
+			ShowPercent:     true,
+			ShowCatName:     true,
+			ShowLeaderLines: true,
+		},
 	}); err != nil {
 		fmt.Println(err)
 		return

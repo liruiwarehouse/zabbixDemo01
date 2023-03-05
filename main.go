@@ -8,6 +8,8 @@ import (
 	"zabbixDemo01/zabbix"
 )
 
+func boolCust(b bool) *bool { return &b }
+
 func main() {
 
 	timeStart := time.Date(2023, 2, 1, 0, 0, 0, 0, time.UTC)
@@ -39,9 +41,19 @@ func main() {
 		}
 	}()
 
+	// 不显示网格线
+	if err = f.SetSheetView("月报", 0, &excelize.ViewOptions{ShowGridLines: boolCust(false)}); err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	// 写入数据
 	for i := 0; i < len(data); i++ {
-		excel.WriteExcel((data)[i].Isp, (data)[i].AveResult, f)
+		n := excel.WriteExcel((data)[i].Isp, (data)[i].AveResult, f)
+		if i == len(data)-1 {
+			excel.LineChart(f, n)
+			//excel.PieChart(f, n)
+		}
 	}
 
 	if err := f.SaveAs("../zabbixDemo01Files/book1.xlsx"); err != nil {
