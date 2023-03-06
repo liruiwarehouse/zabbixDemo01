@@ -49,7 +49,21 @@ func WriteExcel(sheet string, das []zabbix.DayAveSlice, f *excelize.File) int {
 }
 
 // AveTable 制作月平均值表格
-func AveTable(f *excelize.File) {
+func AveTable(f *excelize.File, mas []zabbix.MonthAveSlice) {
+	for i := 0; i < len(mas); i++ {
+		switch mas[i].Isp {
+		case "Mobile":
+
+		case "Unicom":
+
+		case "Telecom":
+
+		case "Mpls":
+
+		case "CDtoBJ":
+
+		}
+	}
 	style, _ := f.NewStyle(&excelize.Style{
 		Alignment: &excelize.Alignment{
 			Horizontal: "center",
@@ -61,19 +75,7 @@ func AveTable(f *excelize.File) {
 			Pattern: 1,
 		},
 	})
-	f.SetCellStyle("sheet1", "B24", "C24", style)
-	f.SetCellStyle("sheet1", "A25", "A29", style)
 
-	f.SetCellFormula("sheet1", "B25", "=AVERAGE(移动!B3:B19)")
-	f.SetCellFormula("sheet1", "B26", "=AVERAGE(联通!B3:B19)")
-	f.SetCellFormula("sheet1", "B27", "=AVERAGE(电信!B3:B19)")
-	f.SetCellFormula("sheet1", "B28", "=AVERAGE(MPLS!B3:B19)")
-	f.SetCellFormula("sheet1", "B29", "=AVERAGE(专线!B3:B19)")
-	f.SetCellFormula("sheet1", "C25", "=AVERAGE(移动!C3:C19)")
-	f.SetCellFormula("sheet1", "C26", "=AVERAGE(联通!C3:C19)")
-	f.SetCellFormula("sheet1", "C27", "=AVERAGE(电信!C3:C19)")
-	f.SetCellFormula("sheet1", "C28", "=AVERAGE(MPLS!C3:C19)")
-	f.SetCellFormula("sheet1", "C29", "=AVERAGE(专线!C3:C19)")
 }
 
 // LineChart 制作折线图

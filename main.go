@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"github.com/xuri/excelize/v2"
 	"time"
+	"zabbixDemo01/excel"
 	"zabbixDemo01/zabbix"
 )
 
@@ -23,38 +26,39 @@ func main() {
 
 	data := zabbix.InitDayData(a, count)
 	//fmt.Println(data)
-	zabbix.MonthTrafficHandle(data)
-	//// 生成xlsx文件
-	//excel.CreateXlsx(data)
-	//
-	//// 打开一个文件
-	//f, err := excelize.OpenFile("../zabbixDemo01Files/book1.xlsx")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//defer func() {
-	//	if err := f.Close(); err != nil {
-	//		fmt.Println(err)
-	//	}
-	//}()
-	//
-	//// 不显示网格线
-	//if err = f.SetSheetView("月报", 0, &excelize.ViewOptions{ShowGridLines: boolCust(false)}); err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//
-	//// 写入数据
-	//for i := 0; i < len(data); i++ {
-	//	n := excel.WriteExcel((data)[i].Isp, (data)[i].AveResult, f)
-	//	if i == len(data)-1 {
-	//		excel.LineChart(f, n)
-	//		//excel.PieChart(f, n)
-	//	}
-	//}
-	//
-	//if err := f.SaveAs("../zabbixDemo01Files/book1.xlsx"); err != nil {
-	//	fmt.Println(err)
-	//}
+	//slices := zabbix.MonthTrafficHandle(data)
+	//fmt.Println(slices)
+	// 生成xlsx文件
+	excel.CreateXlsx(data)
+
+	// 打开一个文件
+	f, err := excelize.OpenFile("../zabbixDemo01Files/book1.xlsx")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	// 不显示网格线
+	if err = f.SetSheetView("月报", 0, &excelize.ViewOptions{ShowGridLines: boolCust(false)}); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// 写入数据
+	for i := 0; i < len(data); i++ {
+		n := excel.WriteExcel((data)[i].Isp, (data)[i].AveResult, f)
+		if i == len(data)-1 {
+			excel.LineChart(f, n)
+			//excel.PieChart(f, n)
+		}
+	}
+
+	if err := f.SaveAs("../zabbixDemo01Files/book1.xlsx"); err != nil {
+		fmt.Println(err)
+	}
 }

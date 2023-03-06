@@ -3,7 +3,6 @@ package zabbix
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -195,27 +194,46 @@ func DayTrafficHandle(z ZabbixData) float64 {
 	return num / float64(len(z.Result)) / 1024 / 1024
 }
 
-// 初始化一个MonthAveSlice类型切片
-//var monthave []MonthAveSlice
+// MonthTrafficHandle 月流量平均值数据处理
+func MonthTrafficHandle(d []DayData) []MonthAveSlice {
+	// 初始化一个MonthAveSlice类型切片
+	var MontHave []MonthAveSlice
 
-//MonthTrafficHandle 月流量平均值数据处理
-func MonthTrafficHandle(d []DayData) {
-	var u float64 = 0
-	var n float64 = 0
-	//var MonthUsage = [][]interface{}{}
+	//v := make([]interface{}, 3, 3)
+	//MonthUsage := make([]interface{}, 5, 5)
 
 	for i := 0; i < len(d); i++ {
+		var u float64 = 0
+		var n float64 = 0
 		for j := 0; j < len(d[i].AveResult); j++ {
 			u += d[i].AveResult[j].UpAve
 			n += d[i].AveResult[j].DownAve
 		}
-		//fmt.Println(d[i].Isp, u, n)
-		s1 := fmt.Sprintf("%v: 上传: %.2f 下载: %.2f", d[i].Isp, u/float64(len(d[i].AveResult))/100, n/float64(len(d[i].AveResult))/100)
-		fmt.Println(s1)
+		//s1 := fmt.Sprintf("%v: 上传: %.2f 下载: %.2f", d[i].Isp, u/float64(len(d[i].AveResult)), n/float64(len(d[i].AveResult)))
+		//fmt.Println(s1)
+
+		switch d[i].Isp {
+		case "Mobile":
+			v := MonthAveSlice{Isp: d[i].Isp, Result: DayAveSlice{UpAve: u / float64(len(d[i].AveResult)) / 1000, DownAve: n / float64(len(d[i].AveResult)) / 1000}}
+			MontHave = append(MontHave, v)
+		case "Unicom":
+			v := MonthAveSlice{Isp: d[i].Isp, Result: DayAveSlice{UpAve: u / float64(len(d[i].AveResult)) / 250, DownAve: n / float64(len(d[i].AveResult)) / 250}}
+			MontHave = append(MontHave, v)
+		case "Telecom":
+			v := MonthAveSlice{Isp: d[i].Isp, Result: DayAveSlice{UpAve: u / float64(len(d[i].AveResult)) / 100, DownAve: n / float64(len(d[i].AveResult)) / 100}}
+			MontHave = append(MontHave, v)
+		case "Mpls":
+			v := MonthAveSlice{Isp: d[i].Isp, Result: DayAveSlice{UpAve: u / float64(len(d[i].AveResult)) / 80, DownAve: n / float64(len(d[i].AveResult)) / 80}}
+			MontHave = append(MontHave, v)
+		case "CDtoBJ":
+			v := MonthAveSlice{Isp: d[i].Isp, Result: DayAveSlice{UpAve: u / float64(len(d[i].AveResult)) / 50, DownAve: n / float64(len(d[i].AveResult)) / 50}}
+			MontHave = append(MontHave, v)
+		}
+
 	}
 
-	//c := MonthAveSlice{Isp: (*d)[i].Isp, Result: DayAveSlice{UpAve: u / float64(len((*d)[i].AveResult)), DownAve: n / float64(len((*d)[i].AveResult))}}
-	//monthave = append(monthave, c)
+	return MontHave
+
 }
 
 type DayData struct {
