@@ -3,6 +3,7 @@ package zabbix
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -169,7 +170,7 @@ func MonthQuery(t TrafficInterface, timeslice []TimeSlice) []DayAveSlice {
 		u := DayTrafficHandle(upload)
 		d := DayTrafficHandle(download)
 
-		ck := timeslice[i].Am.Format("02")
+		ck := timeslice[i].Am.Format("01-02")
 		c := DayAveSlice{Clock: ck, UpAve: u, DownAve: d}
 		dayaveslice = append(dayaveslice, c)
 	}
@@ -197,22 +198,25 @@ func DayTrafficHandle(z ZabbixData) float64 {
 // 初始化一个MonthAveSlice类型切片
 //var monthave []MonthAveSlice
 
-////MonthTrafficHandle 月流量平均值数据处理
-//func MonthTrafficHandle(d *[]IspItem) *[]MonthAveSlice {
-//	var u float64 = 0
-//	var n float64 = 0
-//	for i := 0; i < len(*d); i++ {
-//		for j := 0; j < len((*d)[i].AveResult); j++ {
-//			u += (*d)[i].AveResult[j].UpAve
-//		}
-//		for j := 0; j < len((*d)[i].AveResult); j++ {
-//			n += (*d)[i].AveResult[j].DownAve
-//		}
-//		c := MonthAveSlice{Isp: (*d)[i].Isp, Result: DayAveSlice{UpAve: u / float64(len((*d)[i].AveResult)), DownAve: n / float64(len((*d)[i].AveResult))}}
-//		monthave = append(monthave, c)
-//	}
-//	return &monthave
-//}
+//MonthTrafficHandle 月流量平均值数据处理
+func MonthTrafficHandle(d []DayData) {
+	var u float64 = 0
+	var n float64 = 0
+	//var MonthUsage = [][]interface{}{}
+
+	for i := 0; i < len(d); i++ {
+		for j := 0; j < len(d[i].AveResult); j++ {
+			u += d[i].AveResult[j].UpAve
+			n += d[i].AveResult[j].DownAve
+		}
+		//fmt.Println(d[i].Isp, u, n)
+		s1 := fmt.Sprintf("%v: 上传: %.2f 下载: %.2f", d[i].Isp, u/float64(len(d[i].AveResult))/100, n/float64(len(d[i].AveResult))/100)
+		fmt.Println(s1)
+	}
+
+	//c := MonthAveSlice{Isp: (*d)[i].Isp, Result: DayAveSlice{UpAve: u / float64(len((*d)[i].AveResult)), DownAve: n / float64(len((*d)[i].AveResult))}}
+	//monthave = append(monthave, c)
+}
 
 type DayData struct {
 	Isp       string
