@@ -26,7 +26,7 @@ func main() {
 
 	data := zabbix.InitDayData(a, count)
 	//fmt.Println(data)
-	//slices := zabbix.MonthTrafficHandle(data)
+
 	//fmt.Println(slices)
 	// 生成xlsx文件
 	excel.CreateXlsx(data)
@@ -57,6 +57,9 @@ func main() {
 			//excel.PieChart(f, n)
 		}
 	}
+
+	slices := zabbix.MonthTrafficHandle(data)
+	excel.AveTable(f, slices)
 
 	if err := f.SaveAs("../zabbixDemo01Files/book1.xlsx"); err != nil {
 		fmt.Println(err)

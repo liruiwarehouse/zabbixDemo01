@@ -50,32 +50,68 @@ func WriteExcel(sheet string, das []zabbix.DayAveSlice, f *excelize.File) int {
 
 // AveTable 制作月平均值表格
 func AveTable(f *excelize.File, mas []zabbix.MonthAveSlice) {
-	for i := 0; i < len(mas); i++ {
-		switch mas[i].Isp {
-		case "Mobile":
-
-		case "Unicom":
-
-		case "Telecom":
-
-		case "Mpls":
-
-		case "CDtoBJ":
-
+	err := f.SetCellValue("月报", "A63", "三月线路平均使用率")
+	style3, err := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{
+			Size: 12,
+			Bold: true,
+		},
+	})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	_ = f.SetCellStyle("月报", "A63", "A63", style3)
+	err = f.SetCellValue("月报", "A64", "运营商")
+	if err != nil {
+		return
+	}
+	err = f.SetCellValue("月报", "B64", "上传使用率")
+	if err != nil {
+		return
+	}
+	err = f.SetCellValue("月报", "C64", "下载使用率")
+	if err != nil {
+		return
+	}
+	tabelCellRanges := [][]string{{"A65", "B65", "C65"}, {"A66", "B66", "C66"}, {"A67", "B67", "C67"}, {"A68", "B68", "C68"}, {"A69", "B69", "C69"}}
+	for i, ranges := range tabelCellRanges {
+		err := f.SetCellFormula("月报", ranges[0], fmt.Sprintf("=A%d", i+4))
+		if err != nil {
+			return
+		}
+		err = f.SetCellFloat("月报", ranges[1], mas[i].Result.UpAve, 2, 64)
+		if err != nil {
+			return
+		}
+		err = f.SetCellFloat("月报", ranges[2], mas[i].Result.DownAve, 2, 64)
+		if err != nil {
+			return
 		}
 	}
+
 	style, _ := f.NewStyle(&excelize.Style{
 		Alignment: &excelize.Alignment{
 			Horizontal: "center",
 			Vertical:   "center",
 		},
-		Fill: excelize.Fill{
-			Type:    "pattern",
-			Color:   []string{"#FFE4E1"},
-			Pattern: 1,
-		},
+		NumFmt: 10,
 	})
 
+	err = f.SetCellStyle("月报", "B65", "C69", style)
+	if err != nil {
+		return
+	}
+
+	err = f.AddTable("月报", "A64:C69", &excelize.TableOptions{
+		Name:      "table",
+		StyleName: "TableStyleMedium2",
+	})
+
+	err = f.SetColWidth("月报", "C", "C", 17)
+	if err != nil {
+		return
+	}
 }
 
 // LineChart 制作折线图
@@ -277,35 +313,6 @@ func LineChart(f *excelize.File, n int) {
 			Width:  700,
 		},
 		ShowBlanksAs: "zero",
-	}); err != nil {
-		fmt.Println(err)
-		return
-	}
-}
-
-// PieChart 饼图
-func PieChart(f *excelize.File, n int) {
-	if err := f.AddChart("月报", "A23", &excelize.Chart{
-		Type: "pie",
-		Series: []excelize.ChartSeries{
-			{
-				Name: "数量",
-				//Categories: "Sheet1!$A$1:$C$1",
-				Values: fmt.Sprintf("%s!$B$%d", "Mobile", n+1),
-			},
-		},
-		Format: excelize.GraphicOptions{
-			OffsetX: 15,
-			OffsetY: 10,
-		},
-		Title: excelize.ChartTitle{
-			Name: "三维饼图",
-		},
-		PlotArea: excelize.ChartPlotArea{
-			ShowPercent:     true,
-			ShowCatName:     true,
-			ShowLeaderLines: true,
-		},
 	}); err != nil {
 		fmt.Println(err)
 		return
